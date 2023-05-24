@@ -68,7 +68,7 @@ class Ui_MainWindow(object):
             self.mylist_listWidget.addItem(str(record[0]))
 
     def add_it(self):
-        # Grab the item from the list box
+        # вытягивание объектов из списка
         item = self.additem_lineEdit.text()
 
         self.mylist_listWidget.addItem(item)
@@ -76,16 +76,6 @@ class Ui_MainWindow(object):
         # очистка строки ввода
         self.additem_lineEdit.setText("")
 
-    def delete_it(self):
-        clicked = self.mylist_listWidget.currentRow()
-
-        self.mylist_listWidget.takeItem(clicked)
-
-    def clear_it(self):
-        self.mylist_listWidget.clear()
-
-    # сохранение в бд
-    def save_it(self):
         conn = sqlite3.connect('mylist.db')
         c = conn.cursor()
 
@@ -98,7 +88,6 @@ class Ui_MainWindow(object):
             items.append(self.mylist_listWidget.item(index))
 
         for item in items:
-
             c.execute("INSERT INTO todo_list VALUES (:item)",
                       {
                           'item': item.text(),
@@ -108,6 +97,34 @@ class Ui_MainWindow(object):
 
         conn.close()
 
+    def delete_it(self):
+        clicked = self.mylist_listWidget.currentRow()
+
+        self.mylist_listWidget.takeItem(clicked)
+
+        conn = sqlite3.connect('mylist.db')
+        c = conn.cursor()
+
+        c.execute('DELETE FROM todo_list;', )
+
+        # создание списка объектов
+        items = []
+        # вытягивание
+        for index in range(self.mylist_listWidget.count()):
+            items.append(self.mylist_listWidget.item(index))
+
+        for item in items:
+            c.execute("INSERT INTO todo_list VALUES (:item)",
+                      {
+                          'item': item.text(),
+                      })
+
+        conn.commit()
+
+        conn.close()
+
+    def clear_it(self):
+        self.mylist_listWidget.clear()
         msg = QMessageBox()
         msg.setWindowTitle("Saved To Database!!")
         msg.setText("Your Todo List Has Been Saved!")
